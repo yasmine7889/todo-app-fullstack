@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { Category } from './categories/category.entity';
 import { CategoriesModule } from './categories/categories.module';
+import { Task } from './tasks/task.entity';
 import { TasksModule } from './tasks/tasks.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
@@ -27,7 +29,7 @@ const databaseImports = shouldConnectToDatabase
           return {
             type: 'postgres' as const,
             url: databaseUrl,
-            entities: [User],
+            entities: [User, Category, Task],
             retryAttempts: 1,
             synchronize: configService.get('DB_SYNCHRONIZE') !== 'false',
           };
@@ -36,6 +38,8 @@ const databaseImports = shouldConnectToDatabase
     ]
   : [];
 
+const todoImports = shouldConnectToDatabase ? [CategoriesModule, TasksModule] : [];
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,8 +47,7 @@ const databaseImports = shouldConnectToDatabase
     }),
     ...databaseImports,
     UsersModule,
-    CategoriesModule,
-    TasksModule,
+    ...todoImports,
   ],
   controllers: [AppController],
   providers: [AppService],
